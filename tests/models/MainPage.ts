@@ -120,12 +120,17 @@ export class MainPage {
         }
     }
 
-    async toggleAndCheckLightMode (mode: string) {
+    async toggleLightMode () {
         const themeSwitch = this.getElement('Theme switch button');
-        const html = this.page.locator('html');
-        await test.step(`Switch to light theme using ${themeSwitch.name}`, async () => {
+        await test.step(`Switch light mode`, async () => {
             await themeSwitch.locator(this.page).click();
-            await expect(html).toHaveAttribute('data-theme', mode);
+        });
+    }
+
+    async checkAttribute (locator: string, attr: string, value: string) {
+        const elem = this.page.locator(locator);
+        await test.step(`Check attribute ${attr} has value ${value}`, async () => {
+            await expect(elem).toHaveAttribute(attr, value);
         });
     }
 

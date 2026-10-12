@@ -25,9 +25,14 @@ test.describe('Main Page tests', () => {
   });
 
   test('check light mode selection', async ({ page }) => {
-    await mainPage.toggleAndCheckLightMode('light');
-    await mainPage.toggleAndCheckLightMode('dark');
-    await mainPage.toggleAndCheckLightMode('light');
+    await mainPage.toggleLightMode();
+    await mainPage.checkAttribute('html', 'data-theme', 'light')
+
+    await mainPage.toggleLightMode();
+    await mainPage.checkAttribute('html', 'data-theme', 'dark')
+
+    await mainPage.toggleLightMode();
+    await mainPage.checkAttribute('html', 'data-theme', 'light')
   });
 
  MODES.forEach((value) => {
