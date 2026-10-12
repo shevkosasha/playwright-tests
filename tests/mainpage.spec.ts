@@ -5,38 +5,51 @@ interface ElementData {
   name: string;
   locator: (page: Page) => Locator;
   expectedText?: string;
-  expectedHref?: string;
+  attribute?: {
+    type: string;
+    value: string;
+  };
 }
 
 const elements: ElementData[] = [
   {
     name: "Playwright logo",
     locator: (page) => page.getByRole('link', { name: 'Playwright logo Playwright' }),
-    expectedHref: '/'
+    attribute: {
+      type: 'href', value: '/'
+    }
   },
   {
     name: "Docs link",
     locator: (page) => page.getByRole('link', { name: 'Docs' }),
     expectedText: 'Docs',
-    expectedHref: '/docs/intro'
+    attribute: {
+      type: 'href', value: '/docs/intro'
+    }
   },
   {
     name: "MCP link",
     locator: (page) => page.getByRole('link', { name: 'MCP', exact: true }),
     expectedText: 'MCP',
-    expectedHref: '/mcp/introduction'
+    attribute: {
+      type: 'href', value: '/mcp/introduction'
+    }
   },
   {
     name: "CLI link",
     locator: (page) => page.getByRole('link', { name: 'CLI', exact: true }),
     expectedText: 'CLI',
-    expectedHref: '/agent-cli/introduction'
+    attribute: {
+      type: 'href', value: '/agent-cli/introduction'
+    }
   },
   {
     name: "API link",
     locator: (page) => page.getByRole('link', { name: 'API' }),
     expectedText: 'API',
-    expectedHref: '/docs/api/class-playwright'
+    attribute: {
+      type: 'href', value: '/docs/api/class-playwright'
+    }
   },
   {
     name: "Node.js button",
@@ -50,12 +63,16 @@ const elements: ElementData[] = [
   {
     name: "GitHub repository link",
     locator: (page) => page.getByRole('link', { name: 'GitHub repository' }),
-    expectedHref: 'https://github.com/microsoft/playwright'
+    attribute: {
+      type: 'href', value: 'https://github.com/microsoft/playwright'
+    }
   },
   {
     name: "Discord server link",
     locator: (page) => page.getByRole('link', { name: 'Discord server' }),
-    expectedHref: 'https://aka.ms/playwright/discord'
+    attribute: {
+      type: 'href', value: 'https://aka.ms/playwright/discord'
+    }
   },
   {
     name: "Theme switch button",
@@ -69,10 +86,11 @@ const elements: ElementData[] = [
     name: "Get Started button",
     locator: (page) => page.getByRole('link', { name: 'Get started' }),
     expectedText: 'Get started',
-    expectedHref: '/docs/intro'
+    attribute: {
+      type: 'href', value: '/docs/intro'
+    }
   }
 ];
-
 
 const getElement = (name: string): ElementData => {
   const element = elements.find((el) => el.name === name);
@@ -85,8 +103,10 @@ const getElement = (name: string): ElementData => {
 test.describe('Main Page tests', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('https://playwright.dev/');
-  })
+    await test.step('Navigate to the Playwright main page', async () => {
+      await page.goto('https://playwright.dev/');
+    });
+  });
 
   test('check all elements are visible', async ({ page }) => {
     for (const element of elements) {
@@ -106,41 +126,66 @@ test.describe('Main Page tests', () => {
     }
   });
 
-  test('check navigation hrefs', async ({ page }) => {
-    const elementsWithHref = elements.filter((el) => el.expectedHref);
+  test('check navigation attributes', async ({ page }) => {
+    const elementsWithAttribute = elements.filter((el) => el.attribute);
 
-    for (const element of elementsWithHref) {
-      await test.step(`Checking href of ${element.name}`, async () => {
-        await expect(element.locator(page)).toHaveAttribute('href', element.expectedHref!);
+    for (const element of elementsWithAttribute) {
+      const { type, value } = element.attribute!;
+
+      await test.step(`Checking ${type}="${value}" of ${element.name}`, async () => {
+        await expect(element.locator(page)).toHaveAttribute(type, value);
       });
     }
   });
 
   test('check light mode selection', async ({ page }) => {
     const themeSwitch = getElement('Theme switch button');
+    const html = page.locator('html');
 
-    await themeSwitch.locator(page).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await test.step(`Switch to light theme using ${themeSwitch.name}`, async () => {
+      await themeSwitch.locator(page).click();
+      await expect(html).toHaveAttribute('data-theme', 'light');
+    });
 
-    await themeSwitch.locator(page).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await test.step(`Switch to dark theme using ${themeSwitch.name}`, async () => {
+      await themeSwitch.locator(page).click();
+      await expect(html).toHaveAttribute('data-theme', 'dark');
+    });
 
-    await themeSwitch.locator(page).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await test.step(`Switch back to light theme using ${themeSwitch.name}`, async () => {
+      await themeSwitch.locator(page).click();
+      await expect(html).toHaveAttribute('data-theme', 'light');
+    });
   });
 
   test('check title', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Playwright enables reliable' })).toBeVisible();
-    await page.getByRole('heading', { name: 'Playwright enables reliable' }).click();
+    const title = page.getByRole('heading', { name: 'Playwright enables reliable' });
+
+    await test.step('Check title is visible', async () => {
+      await expect(title).toBeVisible();
+    });
+
+    await test.step('Click on title', async () => {
+      await title.click();
+    });
   });
 
   test('check get started button', async ({ page }) => {
     const getStarted = getElement('Get Started button');
     const locator = getStarted.locator(page);
+    const { type, value } = getStarted.attribute!;
 
-    await expect.soft(locator).toBeVisible();
-    await expect.soft(locator).toContainText(getStarted.expectedText!);
-    await expect.soft(locator).toHaveAttribute('href', getStarted.expectedHref!);
+    await test.step(`Check ${getStarted.name} is visible`, async () => {
+      await expect.soft(locator).toBeVisible();
+    });
+
+    await test.step(`Check ${getStarted.name} contains text "${getStarted.expectedText}"`, async () => {
+      await expect.soft(locator).toContainText(getStarted.expectedText!);
+    });
+
+    await test.step(`Check ${getStarted.name} has ${type}="${value}"`, async () => {
+      await expect.soft(locator).toHaveAttribute(type, value);
+    });
   });
 
 });
