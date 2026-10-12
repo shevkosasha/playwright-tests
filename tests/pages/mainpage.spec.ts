@@ -1,30 +1,27 @@
-import { test, expect, Page, Locator } from '@playwright/test';
-import { MainPage } from '../models/MainPage';
+import { test } from '../fixtures/MainPage';
 
 const MODES = ['light', 'dark'];
 
-let mainPage: MainPage;
-
 test.describe('Main Page tests', () => {
    
-  test.beforeEach(async ({ page }) => {
-    mainPage = new MainPage(page);
-    await mainPage.open();
-  });
+  // test.beforeEach(async ({ page }) => {
+  //   mainPage = new MainPage(page);
+  //   await mainPage.open();
+  // });
 
-  test('check all elements are visible', async ({ page }) => {
+  test('check all elements are visible', async ({ mainPage }) => {
     await mainPage.checkElementsVisibility();
   });
 
-  test('check navigation header contains correct text', async ({ page }) => {
+  test('check navigation header contains correct text', async ({ mainPage }) => {
     await mainPage.checkElementsText();
   });
 
-  test('check navigation attributes', async ({ page }) => {
+  test('check navigation attributes', async ({ mainPage }) => {
     await mainPage.checkNavAttributes();
   });
 
-  test('check light mode selection', async ({ page }) => {
+  test('check light mode selection', async ({ mainPage }) => {
     await mainPage.toggleLightMode();
     await mainPage.checkAttribute('html', 'data-theme', 'light')
 
@@ -36,17 +33,17 @@ test.describe('Main Page tests', () => {
   });
 
  MODES.forEach((value) => {
-    test(`check ${value} mode`, async ({ page }) => {
+    test(`check ${value} mode`, async ({ mainPage }) => {
       await mainPage.setLightMode(value);
       await mainPage.checkLightModeScreenshot(value);
     });
   });
 
-  test('check title', async ({ page }) => {
+  test('check title', async ({ mainPage }) => {
     await mainPage.checkTitle();
   });
 
-  test('check get started button', async ({ page }) => {
+  test('check get started button', async ({ mainPage }) => {
     await mainPage.checkGetStartedBtn();
   });
 });
