@@ -158,6 +158,16 @@ test.describe('Main Page tests', () => {
     });
   });
 
+ ['light', 'dark'].forEach((value) => {
+    test(`check ${value} mode`, async ({ page }) => {
+      await page.evaluate((theme) => {
+        document.querySelector('html')?.setAttribute('data-theme', theme);
+      }, value);
+
+      await expect(page).toHaveScreenshot(`${value}_img.png`);
+    });
+  });
+
   test('check title', async ({ page }) => {
     const title = page.getByRole('heading', { name: 'Playwright enables reliable' });
 
